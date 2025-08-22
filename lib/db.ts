@@ -16,6 +16,14 @@ export interface TaskList {
   tasks?: Task[];
 }
 
+// List interface but for index
+export interface ListDisplay {
+  id: string;
+  title: string;
+  totalTasks: number;
+  completedTasks: number;
+}
+
 const db = SQLite.openDatabaseSync("tasks.db");
 
 // Setup database
@@ -103,6 +111,21 @@ export const getAllLists = () => {
   );
 };
 
+export const getListById = (id: string): TaskList | null => {
+  const result = db.getFirstSync<TaskList>(
+    `SELECT * FROM lists WHERE id = ?;`,
+    [id]
+  );
+  if (result) {
+    return {
+      id: result.id.toString(),
+      title: result.title,
+      tasks: [],
+    };
+  }
+  return null;
+};
+
 // Get all tasks for a specific list
 export const getTasksForList = (list_id: string) => {
   const results = db.getAllSync(`SELECT * FROM tasks WHERE list_id = ?;`, [
@@ -128,7 +151,15 @@ export const updateList = (id: string, title: string) => {
   db.runSync(`UPDATE lists SET title = ? WHERE id = ?;`, [title, id]);
 };
 
-// Delete List
+// Delete List and its Tasks
 export const deleteList = (id: string) => {
   db.runSync(`DELETE FROM lists WHERE id = ?;`, [id]);
+  db.runSync(`DELETE FROM tasks WHERE list_id = ?;`, [id]);
+};
+
+// Reset the database
+export const resetDatabase = () => {
+  db.runSync(`DROP TABLE IF EXISTS tasks;`);
+  db.runSync(`DROP TABLE IF EXISTS lists;`);
+  setupDatabase();
 };

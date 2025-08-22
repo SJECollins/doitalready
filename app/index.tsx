@@ -1,19 +1,37 @@
 import { View, ScrollView, StyleSheet } from "react-native";
 import { Text, List, IconButton, Divider } from "react-native-paper";
 import { useState, useCallback } from "react";
-import { getAllLists, getAllTasks, Task, TaskList } from "@/lib/db";
+import {
+  getAllLists,
+  getAllTasks,
+  updateTask,
+  Task,
+  ListDisplay,
+} from "@/lib/db";
 import { useRouter } from "expo-router";
 import { useFocusEffect } from "@react-navigation/native";
 import PageView from "@/components/pageView";
 
 export default function HomeScreen() {
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [lists, setLists] = useState<TaskList[]>([]);
+  const [lists, setLists] = useState<ListDisplay[]>([]);
   const router = useRouter();
 
   const loadData = () => {
-    setTasks(getAllTasks().filter((t) => !t.list_id));
-    setLists(getAllLists());
+    const tasks = getAllTasks();
+    const sortedTasks = [...tasks].sort((a, b) =>
+      a.completed === b.completed ? 0 : a.completed ? 1 : -1
+    );
+    setTasks(sortedTasks);
+    const lists = getAllLists()
+      .filter((l) => !l.completed)
+      .map((list) => ({
+        id: list.id,
+        title: list.title,
+        totalTasks: list.tasks?.length || 0,
+        completedTasks: list.tasks?.filter((t) => t.completed).length || 0,
+      }));
+    setLists(lists);
   };
 
   // Run loadData when the screen is focused
@@ -22,6 +40,21 @@ export default function HomeScreen() {
       loadData();
     }, [])
   );
+
+  // Complete a task
+  const handleCompleteTask = (taskId: string) => {
+    const task = tasks.find((t) => t.id === taskId);
+    if (!task) return;
+    if (!task.completed) {
+      task.completed = true;
+    } else {
+      task.completed = false;
+    }
+
+    updateTask(taskId, { completed: task.completed });
+
+    loadData();
+  };
 
   return (
     <PageView>
@@ -40,6 +73,7 @@ export default function HomeScreen() {
             <List.Item
               key={task.id}
               title={task.title}
+              titleStyle={task.completed ? styles.completed : undefined}
               left={() => (
                 <IconButton
                   icon={
@@ -47,9 +81,7 @@ export default function HomeScreen() {
                       ? "check-circle"
                       : "checkbox-blank-circle-outline"
                   }
-                  onPress={() => {
-                    // TODO: toggle completed
-                  }}
+                  onPress={() => handleCompleteTask(task.id)}
                 />
               )}
               right={() => (
@@ -80,7 +112,7 @@ export default function HomeScreen() {
             <List.Item
               key={list.id}
               title={list.title}
-              onPress={() => router.push(`./${list.id}`)}
+              onPress={() => router.push(`./list/${list.id}`)}
               left={() => <List.Icon icon="folder-outline" />}
             />
           ))}
@@ -106,5 +138,8 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 20,
     opacity: 0.6,
+  },
+  completed: {
+    textDecorationLine: "line-through",
   },
 });

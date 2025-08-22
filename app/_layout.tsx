@@ -116,6 +116,20 @@ function RootLayout() {
             ),
           }}
         />
+        <Tabs.Screen
+          name="list/[id]"
+          options={{
+            title: "List Details",
+            href: null,
+          }}
+        />
+        <Tabs.Screen
+          name="task/[id]"
+          options={{
+            title: "Task Details",
+            href: null,
+          }}
+        />
       </Tabs>
     </PaperProvider>
   );
