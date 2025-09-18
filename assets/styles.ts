@@ -11,10 +11,25 @@ const useStyles = () => {
     },
     btnRow: {
       flexDirection: "row",
+      justifyContent: "center",
       marginTop: 20,
     },
     btn: {
       width: "auto",
+      marginVertical: 10,
+    },
+    col: {
+      flexDirection: "column",
+      gap: 10,
+      marginVertical: 10,
+    },
+    row: {
+      flexDirection: "row",
+      justifyContent: "space-evenly",
+      alignItems: "center",
+    },
+    divider: {
+      marginVertical: 10,
     },
   });
 };

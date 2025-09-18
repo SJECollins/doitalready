@@ -11,8 +11,7 @@ import { Picker } from "@react-native-picker/picker";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import { View } from "react-native";
-import { Button, Text, TextInput } from "react-native-paper";
-import CheckboxItem from "react-native-paper/lib/typescript/components/Checkbox/CheckboxItem";
+import { Button, Checkbox, Text, TextInput } from "react-native-paper";
 import useStyles from "../assets/styles";
 import PageView from "./pageView";
 
@@ -139,8 +138,7 @@ export default function TaskForm({ taskId }: { taskId: string | null }) {
           has &quot;Delete on complete&quot; enabled.
         </Text>
         <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <CheckboxItem
-            label="Delete on complete"
+          <Checkbox
             status={task.deleteOnComplete ? "checked" : "unchecked"}
             onPress={() =>
               setTask({ ...task, deleteOnComplete: !task.deleteOnComplete })

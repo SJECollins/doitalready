@@ -1,75 +1,51 @@
-import { useState } from "react";
-import { ScrollView, View } from "react-native";
-import { TextInput, Button, Switch, Text } from "react-native-paper";
-import { addList, addTask, resetDatabase } from "@/lib/db";
-import { useAppTheme, useMessage } from "./_layout";
 import PageView from "@/components/pageView";
+import { resetDatabase } from "@/lib/db";
+import { useRouter } from "expo-router";
+import { ScrollView, View } from "react-native";
+import { Button, Divider, Switch, Text } from "react-native-paper";
+import useStyles from "../assets/styles";
+import { useAppTheme, useMessage } from "./_layout";
 
 export default function ManageScreen() {
-  const [taskTitle, setTaskTitle] = useState("");
-  const [listTitle, setListTitle] = useState("");
+  const router = useRouter();
+  const styles = useStyles();
   const { darkMode, toggleTheme } = useAppTheme();
   const { triggerMessage } = useMessage();
-
-  const handleAddTask = () => {
-    if (taskTitle.trim() === "") {
-      triggerMessage("Task title cannot be empty", "error");
-      return;
-    }
-    if (taskTitle.trim()) addTask(taskTitle);
-    setTaskTitle("");
-    triggerMessage("Task added successfully", "success");
-  };
-
-  const handleAddList = () => {
-    if (listTitle.trim() === "") {
-      triggerMessage("List title cannot be empty", "error");
-      return;
-    }
-    if (listTitle.trim()) addList(listTitle);
-    setListTitle("");
-    triggerMessage("List added successfully", "success");
-  };
 
   return (
     <PageView>
       <ScrollView style={{ flex: 1, padding: 10 }}>
-        <Text variant="titleLarge">Add Task</Text>
-        <TextInput
-          label="Task Title"
-          value={taskTitle}
-          onChangeText={setTaskTitle}
-        />
-        <Button
-          mode="contained"
-          onPress={handleAddTask}
-          style={{ marginTop: 10 }}
-        >
-          Add Task
-        </Button>
+        <View style={styles.col}>
+          <Text variant="titleLarge">Add a Task</Text>
+          <View style={styles.btnRow}>
+            <Button
+              mode="contained"
+              onPress={() => router.push("./task/add")}
+              style={styles.btn}
+            >
+              Add Task
+            </Button>
+          </View>
+          <Text variant="titleLarge">Add a List</Text>
+          <View style={styles.btnRow}>
+            <Button
+              mode="contained"
+              onPress={() => router.push("./list/add")}
+              style={styles.btn}
+            >
+              Add List
+            </Button>
+          </View>
+        </View>
 
-        <Text variant="titleLarge" style={{ marginTop: 20 }}>
-          Add List
-        </Text>
-        <TextInput
-          label="List Title"
-          value={listTitle}
-          onChangeText={setListTitle}
-        />
-        <Button
-          mode="contained"
-          onPress={handleAddList}
-          style={{ marginTop: 10 }}
-        >
-          Add List
-        </Button>
-        <Button
-          mode="contained"
-          onPress={resetDatabase}
-          style={{ marginTop: 10 }}
-        >
-          Reset Database
-        </Button>
+        <Divider style={styles.divider} />
+        <View style={styles.btnRow}>
+          <Button mode="contained" onPress={resetDatabase} style={styles.btn}>
+            Reset Database
+          </Button>
+        </View>
+
+        <Divider style={styles.divider} />
 
         <View
           style={{

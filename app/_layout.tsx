@@ -124,9 +124,37 @@ function RootLayout() {
           }}
         />
         <Tabs.Screen
+          name="list/add"
+          options={{
+            title: "Add List",
+            href: null,
+          }}
+        />
+        <Tabs.Screen
+          name="list/edit"
+          options={{
+            title: "Edit List",
+            href: null,
+          }}
+        />
+        <Tabs.Screen
           name="task/[id]"
           options={{
             title: "Task Details",
+            href: null,
+          }}
+        />
+        <Tabs.Screen
+          name="task/add"
+          options={{
+            title: "Add Task",
+            href: null,
+          }}
+        />
+        <Tabs.Screen
+          name="task/edit"
+          options={{
+            title: "Edit Task",
             href: null,
           }}
         />
