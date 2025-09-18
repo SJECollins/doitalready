@@ -138,13 +138,16 @@ export default function TaskForm({ taskId }: { taskId: string | null }) {
           completed. This setting is ignored if the task is part of a list that
           has &quot;Delete on complete&quot; enabled.
         </Text>
-        <CheckboxItem
-          label="Delete on complete"
-          status={task.deleteOnComplete ? "checked" : "unchecked"}
-          onPress={() =>
-            setTask({ ...task, deleteOnComplete: !task.deleteOnComplete })
-          }
-        />
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <CheckboxItem
+            label="Delete on complete"
+            status={task.deleteOnComplete ? "checked" : "unchecked"}
+            onPress={() =>
+              setTask({ ...task, deleteOnComplete: !task.deleteOnComplete })
+            }
+          />
+          <Text>Delete on complete</Text>
+        </View>
       </View>
 
       <View style={styles.formGroup}>
@@ -174,15 +177,15 @@ export default function TaskForm({ taskId }: { taskId: string | null }) {
           </Button>
         </View>
       )}
-      {taskId ? (
-        <Button mode="contained" onPress={handleUpdateTask}>
-          Update Task
+      <View style={styles.btnRow}>
+        <Button
+          mode="contained"
+          style={styles.btn}
+          onPress={taskId ? handleUpdateTask : handleAddTask}
+        >
+          {taskId ? "Update Task" : "Add Task"}
         </Button>
-      ) : (
-        <Button mode="contained" onPress={handleAddTask}>
-          Add Task
-        </Button>
-      )}
+      </View>
     </PageView>
   );
 }

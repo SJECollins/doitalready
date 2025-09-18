@@ -9,6 +9,13 @@ const useStyles = () => {
       flexDirection: "column",
       gap: 6,
     },
+    btnRow: {
+      flexDirection: "row",
+      marginTop: 20,
+    },
+    btn: {
+      width: "auto",
+    },
   });
 };
 

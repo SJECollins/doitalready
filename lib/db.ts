@@ -177,13 +177,24 @@ export const getTasksForList = (list_id: string) => {
 };
 
 // Add List
-export const addList = (title: string) => {
-  db.runSync(`INSERT INTO lists (title) VALUES (?);`, [title]);
+export const addList = (title: string, deleteOnComplete: boolean) => {
+  db.runSync(`INSERT INTO lists (title, deleteOnComplete) VALUES (?, ?);`, [
+    title,
+    deleteOnComplete,
+  ]);
 };
 
 // Update List
-export const updateList = (id: string, title: string) => {
-  db.runSync(`UPDATE lists SET title = ? WHERE id = ?;`, [title, id]);
+export const updateList = (
+  id: string,
+  title: string,
+  deleteOnComplete: boolean
+) => {
+  db.runSync(`UPDATE lists SET title = ?, deleteOnComplete = ? WHERE id = ?;`, [
+    title,
+    deleteOnComplete,
+    id,
+  ]);
   // If list is marked completed and deleteOnComplete is true, delete the list
   const list = getListById(id);
   if (list && list.completed && list.deleteOnComplete) {
