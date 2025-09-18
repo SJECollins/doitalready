@@ -1,16 +1,16 @@
-import { View, ScrollView, StyleSheet } from "react-native";
-import { Text, List, IconButton, Divider } from "react-native-paper";
-import { useState, useCallback } from "react";
+import PageView from "@/components/pageView";
 import {
   getAllLists,
-  getAllTasks,
-  updateTask,
-  Task,
+  getUnassignedTasks,
   ListDisplay,
+  Task,
+  updateTask,
 } from "@/lib/db";
-import { useRouter } from "expo-router";
 import { useFocusEffect } from "@react-navigation/native";
-import PageView from "@/components/pageView";
+import { useRouter } from "expo-router";
+import { useCallback, useState } from "react";
+import { ScrollView, StyleSheet, View } from "react-native";
+import { Divider, IconButton, List, Text } from "react-native-paper";
 
 export default function HomeScreen() {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -18,7 +18,7 @@ export default function HomeScreen() {
   const router = useRouter();
 
   const loadData = () => {
-    const tasks = getAllTasks();
+    const tasks = getUnassignedTasks();
     const sortedTasks = [...tasks].sort((a, b) =>
       a.completed === b.completed ? 0 : a.completed ? 1 : -1
     );

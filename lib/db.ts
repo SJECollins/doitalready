@@ -5,6 +5,7 @@ export interface Task {
   id: string;
   title: string;
   completed: boolean;
+  deleteOnComplete: boolean;
   list_id?: string;
 }
 
@@ -12,6 +13,7 @@ export interface Task {
 export interface TaskList {
   id: string;
   title: string;
+  deleteOnComplete: boolean;
   completed?: boolean;
   tasks?: Task[];
 }
@@ -31,13 +33,16 @@ export const setupDatabase = () => {
   db.execSync(
     `CREATE TABLE IF NOT EXISTS lists (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        title TEXT NOT NULL
+        title TEXT NOT NULL,
+        completed BOOLEAN NOT NULL,
+        deleteOnComplete BOOLEAN NOT NULL
     );
     
     CREATE TABLE IF NOT EXISTS tasks (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         title TEXT NOT NULL,
         completed BOOLEAN NOT NULL,
+        deleteOnComplete BOOLEAN NOT NULL,
         list_id INTEGER,
         FOREIGN KEY(list_id) REFERENCES lists(id)
     );`
@@ -53,6 +58,21 @@ export const getAllTasks = () => {
       title: result.title,
       completed: result.completed,
       list_id: result.list_id?.toString(),
+      deleteOnComplete: result.deleteOnComplete,
+    })
+  );
+};
+
+// Get tasks not assigned to any list
+export const getUnassignedTasks = () => {
+  const results = db.getAllSync(`SELECT * FROM tasks WHERE list_id IS NULL;`);
+  return results.map(
+    (result: any): Task => ({
+      id: result.id.toString(),
+      title: result.title,
+      completed: result.completed,
+      list_id: result.list_id?.toString(),
+      deleteOnComplete: result.deleteOnComplete,
     })
   );
 };
@@ -68,16 +88,21 @@ export const getTaskById = (id: string): Task | null => {
       title: result.title,
       completed: result.completed,
       list_id: result.list_id?.toString(),
+      deleteOnComplete: result.deleteOnComplete,
     };
   }
   return null;
 };
 
 // Add Task
-export const addTask = (title: string, list_id?: string) => {
+export const addTask = (
+  title: string,
+  list_id?: string,
+  deleteOnComplete?: boolean
+) => {
   db.runSync(
-    `INSERT INTO tasks (title, completed, list_id) VALUES (?, ?, ?);`,
-    [title, false, list_id ?? null]
+    `INSERT INTO tasks (title, completed, list_id, deleteOnComplete) VALUES (?, ?, ?, ?);`,
+    [title, false, list_id ?? null, deleteOnComplete ?? false]
   );
 };
 
@@ -92,6 +117,13 @@ export const updateTask = (id: string, updates: Partial<Task>) => {
       id,
     ]
   );
+  // If task is marked completed and deleteOnComplete is true, delete the task but not if it's part of a list
+  const task = getTaskById(id);
+  if (task && updates.completed && updates.deleteOnComplete) {
+    if (!task.list_id) {
+      deleteTask(id);
+    }
+  }
 };
 
 // Delete Task
@@ -107,6 +139,7 @@ export const getAllLists = () => {
       id: result.id.toString(),
       title: result.title,
       tasks: [],
+      deleteOnComplete: result.deleteOnComplete,
     })
   );
 };
@@ -121,6 +154,7 @@ export const getListById = (id: string): TaskList | null => {
       id: result.id.toString(),
       title: result.title,
       tasks: [],
+      deleteOnComplete: result.deleteOnComplete,
     };
   }
   return null;
@@ -137,6 +171,7 @@ export const getTasksForList = (list_id: string) => {
       title: result.title,
       completed: result.completed,
       list_id: result.list_id?.toString(),
+      deleteOnComplete: result.deleteOnComplete,
     })
   );
 };
@@ -149,6 +184,11 @@ export const addList = (title: string) => {
 // Update List
 export const updateList = (id: string, title: string) => {
   db.runSync(`UPDATE lists SET title = ? WHERE id = ?;`, [title, id]);
+  // If list is marked completed and deleteOnComplete is true, delete the list
+  const list = getListById(id);
+  if (list && list.completed && list.deleteOnComplete) {
+    deleteList(id);
+  }
 };
 
 // Delete List and its Tasks

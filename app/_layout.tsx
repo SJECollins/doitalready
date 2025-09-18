@@ -1,11 +1,11 @@
-import { Tabs } from "expo-router";
-import { PaperProvider, MD3DarkTheme, MD3LightTheme } from "react-native-paper";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { createContext, useContext, useEffect, useState } from "react";
 import DisplayMessage from "@/components/displayMessage";
 import { setupDatabase } from "@/lib/db";
-import { Appearance, View } from "react-native";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { Tabs } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import { createContext, useContext, useEffect, useState } from "react";
+import { Appearance } from "react-native";
+import { MD3DarkTheme, MD3LightTheme, PaperProvider } from "react-native-paper";
 
 // Handle theme for app, based on device theme - darkmode by default
 const ThemeContext = createContext<
@@ -36,8 +36,8 @@ const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
 // Messages/notifications
 interface MessageContextType {
   message: string | null;
-  messageType: "error" | "success" | null;
-  triggerMessage: (message: string, type: "error" | "success") => void;
+  messageType: "error" | "success" | "info" | null;
+  triggerMessage: (message: string, type: "error" | "success" | "info") => void;
 }
 
 const MessageContext = createContext<MessageContextType | undefined>(undefined);
@@ -52,11 +52,11 @@ export const useMessage = () => {
 
 const MessageProvider = ({ children }: { children: React.ReactNode }) => {
   const [message, setMessage] = useState<string | null>(null);
-  const [messageType, setMessageType] = useState<"error" | "success" | null>(
-    null
-  );
+  const [messageType, setMessageType] = useState<
+    "error" | "success" | "info" | null
+  >(null);
 
-  const triggerMessage = (msg: string, type: "error" | "success") => {
+  const triggerMessage = (msg: string, type: "error" | "success" | "info") => {
     setMessage(msg);
     setMessageType(type);
   };
