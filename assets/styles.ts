@@ -31,6 +31,33 @@ const useStyles = () => {
     divider: {
       marginVertical: 10,
     },
+    container: {
+      flex: 1,
+      flexDirection: "column",
+    },
+    section: {
+      flex: 1,
+      padding: 10,
+    },
+    header: {
+      marginBottom: 8,
+    },
+    empty: {
+      textAlign: "center",
+      marginTop: 20,
+      opacity: 0.6,
+    },
+    completed: {
+      textDecorationLine: "line-through",
+    },
+    pickerStyle: {
+      backgroundColor: theme.colors.background,
+      color: theme.colors.primary,
+    },
+    pickerItemStyle: {
+      color: theme.colors.primary,
+      backgroundColor: theme.colors.background,
+    },
   });
 };
 

@@ -6,6 +6,9 @@ export interface Task {
   title: string;
   completed: boolean;
   deleteOnComplete: boolean;
+  resetOnComplete: boolean;
+  resetInterval: "hour" | "day" | "week" | "month" | "year" | null;
+  resetAt: string;
   list_id?: string;
 }
 
@@ -13,9 +16,15 @@ export interface Task {
 export interface TaskList {
   id: string;
   title: string;
+}
+
+export interface NewList {
+  title: string;
   deleteOnComplete: boolean;
+  resetOnComplete: boolean;
+  resetInterval: "hour" | "day" | "week" | "month" | "year" | null;
+  resetAt?: string;
   completed?: boolean;
-  tasks?: Task[];
 }
 
 // List interface but for index
@@ -24,6 +33,12 @@ export interface ListDisplay {
   title: string;
   totalTasks: number;
   completedTasks: number;
+  resetOnComplete?: boolean;
+  resetInterval?: "hour" | "day" | "week" | "month" | "year" | null;
+  resetAt?: string;
+  deleteOnComplete?: boolean;
+  completed: boolean;
+  tasks?: Task[];
 }
 
 const db = SQLite.openDatabaseSync("tasks.db");
@@ -35,7 +50,10 @@ export const setupDatabase = () => {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         title TEXT NOT NULL,
         completed BOOLEAN NOT NULL,
-        deleteOnComplete BOOLEAN NOT NULL
+        deleteOnComplete BOOLEAN NOT NULL,
+        resetOnComplete BOOLEAN NOT NULL,
+        resetInterval TEXT,
+        resetAt DATETIME
     );
     
     CREATE TABLE IF NOT EXISTS tasks (
@@ -43,6 +61,9 @@ export const setupDatabase = () => {
         title TEXT NOT NULL,
         completed BOOLEAN NOT NULL,
         deleteOnComplete BOOLEAN NOT NULL,
+        resetOnComplete BOOLEAN NOT NULL,
+        resetInterval TEXT,
+        resetAt DATETIME,
         list_id INTEGER,
         FOREIGN KEY(list_id) REFERENCES lists(id)
     );`
@@ -59,6 +80,9 @@ export const getAllTasks = () => {
       completed: result.completed,
       list_id: result.list_id?.toString(),
       deleteOnComplete: result.deleteOnComplete,
+      resetOnComplete: result.resetOnComplete,
+      resetAt: result.resetAt,
+      resetInterval: result.resetInterval,
     })
   );
 };
@@ -73,6 +97,9 @@ export const getUnassignedTasks = () => {
       completed: result.completed,
       list_id: result.list_id?.toString(),
       deleteOnComplete: result.deleteOnComplete,
+      resetOnComplete: result.resetOnComplete,
+      resetAt: result.resetAt,
+      resetInterval: result.resetInterval,
     })
   );
 };
@@ -89,6 +116,9 @@ export const getTaskById = (id: string): Task | null => {
       completed: result.completed,
       list_id: result.list_id?.toString(),
       deleteOnComplete: result.deleteOnComplete,
+      resetOnComplete: result.resetOnComplete,
+      resetAt: result.resetAt,
+      resetInterval: result.resetInterval,
     };
   }
   return null;
@@ -98,31 +128,91 @@ export const getTaskById = (id: string): Task | null => {
 export const addTask = (
   title: string,
   list_id?: string,
-  deleteOnComplete?: boolean
+  deleteOnComplete?: boolean,
+  resetOnComplete?: boolean,
+  resetInterval?: "hour" | "day" | "week" | "month" | "year" | null
 ) => {
+  if (list_id) {
+    deleteOnComplete = false;
+    resetOnComplete = false;
+  }
   db.runSync(
-    `INSERT INTO tasks (title, completed, list_id, deleteOnComplete) VALUES (?, ?, ?, ?);`,
-    [title, false, list_id ?? null, deleteOnComplete ?? false]
+    `INSERT INTO tasks (title, completed, list_id, deleteOnComplete, resetOnComplete, resetInterval) VALUES (?, ?, ?, ?, ?, ?);`,
+    [
+      title,
+      false,
+      list_id ?? null,
+      deleteOnComplete ?? false,
+      resetOnComplete ?? false,
+      resetInterval ?? null,
+    ]
   );
 };
 
 // Update Task
 export const updateTask = (id: string, updates: Partial<Task>) => {
+  const taskToUpdate = getTaskById(id);
+  if (!taskToUpdate) {
+    return;
+  }
+  if (taskToUpdate.list_id) {
+    updates.deleteOnComplete = false;
+    updates.resetOnComplete = false;
+    updates.resetAt = undefined;
+    updates.resetInterval = null;
+  }
   db.runSync(
-    `UPDATE tasks SET title = ?, completed = ?, list_id = ? WHERE id = ?;`,
+    `UPDATE tasks SET title = ?, completed = ?, list_id = ?, deleteOnComplete = ?, resetOnComplete = ?, resetAt = ?, resetInterval = ? WHERE id = ?;`,
     [
       updates.title ?? "",
       updates.completed ?? false,
       updates.list_id ?? null,
+      updates.deleteOnComplete ?? false,
+      updates.resetOnComplete ?? false,
+      updates.resetAt ?? null,
+      updates.resetInterval ?? null,
       id,
     ]
   );
-  // If task is marked completed and deleteOnComplete is true, delete the task but not if it's part of a list
-  const task = getTaskById(id);
-  if (task && updates.completed && updates.deleteOnComplete) {
-    if (!task.list_id) {
-      deleteTask(id);
+  // If task is marked completed and deleteOnComplete is true, delete the task
+  const updatedTask = getTaskById(id);
+  if (!updatedTask) return;
+  if (updatedTask.completed && updatedTask.deleteOnComplete) {
+    deleteTask(id);
+  }
+  // If task is marked completed and resetOnComplete is true, set resetAt depending on selected interval
+  if (updatedTask.completed && updatedTask.resetOnComplete) {
+    switch (updatedTask.resetInterval) {
+      case "hour":
+        updates.resetAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+        break;
+      case "day":
+        updates.resetAt = new Date(
+          Date.now() + 24 * 60 * 60 * 1000
+        ).toISOString();
+        break;
+      case "week":
+        updates.resetAt = new Date(
+          Date.now() + 7 * 24 * 60 * 60 * 1000
+        ).toISOString();
+        break;
+      case "month":
+        updates.resetAt = new Date(
+          Date.now() + 30 * 24 * 60 * 60 * 1000
+        ).toISOString();
+        break;
+      case "year":
+        updates.resetAt = new Date(
+          Date.now() + 365 * 24 * 60 * 60 * 1000
+        ).toISOString();
+        break;
+      default:
+        updates.resetAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
     }
+    db.runSync(`UPDATE tasks SET resetAt = ? WHERE id = ?;`, [
+      updates.resetAt,
+      id,
+    ]);
   }
 };
 
@@ -133,19 +223,41 @@ export const deleteTask = (id: string) => {
 
 // Get all lists
 export const getAllLists = () => {
-  const results = db.getAllSync(`SELECT * FROM lists;`);
+  const results = db.getAllSync(`SELECT * FROM lists;`) as ListDisplay[];
+  results.forEach((list) => {
+    const tasks = getTasksForList(list.id);
+    list.tasks = tasks;
+    list.completedTasks = tasks.filter((t) => t.completed).length;
+    list.totalTasks = tasks.length;
+    list.completed =
+      list.totalTasks > 0 && list.totalTasks === list.completedTasks;
+  });
   return results.map(
-    (result: any): TaskList => ({
+    (result: any): ListDisplay => ({
       id: result.id.toString(),
       title: result.title,
+      totalTasks: 0,
+      completedTasks: 0,
       tasks: [],
       deleteOnComplete: result.deleteOnComplete,
+      resetOnComplete: result.resetOnComplete,
+      resetAt: result.resetAt,
+      resetInterval: result.resetInterval,
+      completed: result.completed,
     })
   );
 };
 
-export const getListById = (id: string): TaskList | null => {
-  const result = db.getFirstSync<TaskList>(
+export const getLists = () => {
+  const results = db.getAllSync(`SELECT * FROM lists;`) as ListDisplay[];
+  return results.map((result) => ({
+    id: result.id.toString(),
+    title: result.title,
+  }));
+};
+
+export const getListById = (id: string): ListDisplay | null => {
+  const result = db.getFirstSync<ListDisplay>(
     `SELECT * FROM lists WHERE id = ?;`,
     [id]
   );
@@ -155,6 +267,12 @@ export const getListById = (id: string): TaskList | null => {
       title: result.title,
       tasks: [],
       deleteOnComplete: result.deleteOnComplete,
+      resetOnComplete: result.resetOnComplete,
+      resetAt: result.resetAt,
+      totalTasks: 0,
+      completedTasks: 0,
+      resetInterval: result.resetInterval,
+      completed: result.completed,
     };
   }
   return null;
@@ -172,6 +290,9 @@ export const getTasksForList = (list_id: string) => {
       completed: result.completed,
       list_id: result.list_id?.toString(),
       deleteOnComplete: result.deleteOnComplete,
+      resetOnComplete: result.resetOnComplete,
+      resetAt: result.resetAt,
+      resetInterval: result.resetInterval,
     })
   );
 };
@@ -184,21 +305,80 @@ export const addList = (title: string, deleteOnComplete: boolean) => {
   ]);
 };
 
+const listComplete = (id: string) => {
+  const tasks = getTasksForList(id);
+  const list = getListById(id);
+  if (tasks.length > 0 && tasks.every((task) => task.completed)) {
+    return true;
+  } else if (list && list.completed) {
+    return true;
+  }
+  return false;
+};
+
+export const resetListTasks = (id: string) => {
+  const tasks = getTasksForList(id);
+  tasks.forEach((task) => {
+    if (task.completed) {
+      task.completed = false;
+      updateTask(task.id, { completed: false });
+    }
+  });
+};
+
 // Update List
-export const updateList = (
-  id: string,
-  title: string,
-  deleteOnComplete: boolean
-) => {
-  db.runSync(`UPDATE lists SET title = ?, deleteOnComplete = ? WHERE id = ?;`, [
-    title,
-    deleteOnComplete,
-    id,
-  ]);
+export const updateList = (id: string, updates: Partial<ListDisplay>) => {
+  db.runSync(
+    `UPDATE lists SET title = ?, deleteOnComplete = ?, resetOnComplete = ?, resetAt = ?, resetInterval = ?, completed = ? WHERE id = ?;`,
+    [
+      updates.title ?? "",
+      updates.deleteOnComplete ?? false,
+      updates.resetOnComplete ?? false,
+      updates.resetAt ?? null,
+      updates.resetInterval ?? null,
+      updates.completed ?? false,
+      id,
+    ]
+  );
   // If list is marked completed and deleteOnComplete is true, delete the list
   const list = getListById(id);
-  if (list && list.completed && list.deleteOnComplete) {
+  if (!list) return;
+  if (listComplete(id) && list.deleteOnComplete) {
     deleteList(id);
+  }
+  // If list is marked completed and resetOnComplete is true, set resetAt depending on selected interval
+  if (listComplete(id) && list.resetOnComplete) {
+    switch (list.resetInterval) {
+      case "hour":
+        updates.resetAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+        break;
+      case "day":
+        updates.resetAt = new Date(
+          Date.now() + 24 * 60 * 60 * 1000
+        ).toISOString();
+        break;
+      case "week":
+        updates.resetAt = new Date(
+          Date.now() + 7 * 24 * 60 * 60 * 1000
+        ).toISOString();
+        break;
+      case "month":
+        updates.resetAt = new Date(
+          Date.now() + 30 * 24 * 60 * 60 * 1000
+        ).toISOString();
+        break;
+      case "year":
+        updates.resetAt = new Date(
+          Date.now() + 365 * 24 * 60 * 60 * 1000
+        ).toISOString();
+        break;
+      default:
+        updates.resetAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+    }
+    db.runSync(`UPDATE lists SET resetAt = ? WHERE id = ?;`, [
+      updates.resetAt,
+      id,
+    ]);
   }
 };
 
