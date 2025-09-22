@@ -58,6 +58,15 @@ const useStyles = () => {
       color: theme.colors.primary,
       backgroundColor: theme.colors.background,
     },
+    modalStyle: {
+      backgroundColor: theme.colors.background,
+      padding: 20,
+      margin: 20,
+      borderRadius: 8,
+      shadowColor: "#000",
+      alignItems: "center",
+      justifyContent: "center",
+    },
   });
 };
 

@@ -152,6 +152,8 @@ export const addTask = (
 // Update Task
 export const updateTask = (id: string, updates: Partial<Task>) => {
   const taskToUpdate = getTaskById(id);
+  console.log("Current task:", taskToUpdate?.list_id);
+  console.log("Updating task:", id, updates);
   if (!taskToUpdate) {
     return;
   }
@@ -164,16 +166,19 @@ export const updateTask = (id: string, updates: Partial<Task>) => {
   db.runSync(
     `UPDATE tasks SET title = ?, completed = ?, list_id = ?, deleteOnComplete = ?, resetOnComplete = ?, resetAt = ?, resetInterval = ? WHERE id = ?;`,
     [
-      updates.title ?? "",
-      updates.completed ?? false,
-      updates.list_id ?? null,
-      updates.deleteOnComplete ?? false,
-      updates.resetOnComplete ?? false,
-      updates.resetAt ?? null,
-      updates.resetInterval ?? null,
+      updates.title ?? taskToUpdate.title,
+      updates.completed ?? taskToUpdate.completed,
+      updates.list_id !== undefined
+        ? updates.list_id
+        : taskToUpdate.list_id ?? null,
+      updates.deleteOnComplete ?? taskToUpdate.deleteOnComplete,
+      updates.resetOnComplete ?? taskToUpdate.resetOnComplete,
+      updates.resetAt ?? taskToUpdate.resetAt,
+      updates.resetInterval ?? taskToUpdate.resetInterval,
       id,
     ]
   );
+  console.log("Task updated:", id, updates);
   // If task is marked completed and deleteOnComplete is true, delete the task
   const updatedTask = getTaskById(id);
   if (!updatedTask) return;
@@ -236,9 +241,9 @@ export const getAllLists = () => {
     (result: any): ListDisplay => ({
       id: result.id.toString(),
       title: result.title,
-      totalTasks: 0,
-      completedTasks: 0,
-      tasks: [],
+      totalTasks: result.totalTasks,
+      completedTasks: result.completedTasks,
+      tasks: result.tasks,
       deleteOnComplete: result.deleteOnComplete,
       resetOnComplete: result.resetOnComplete,
       resetAt: result.resetAt,
@@ -261,16 +266,24 @@ export const getListById = (id: string): ListDisplay | null => {
     `SELECT * FROM lists WHERE id = ?;`,
     [id]
   );
+  const tasks = getTasksForList(id);
+  if (result) {
+    result.tasks = tasks;
+    result.completedTasks = tasks.filter((t) => t.completed).length;
+    result.totalTasks = tasks.length;
+    result.completed =
+      result.totalTasks > 0 && result.totalTasks === result.completedTasks;
+  }
   if (result) {
     return {
       id: result.id.toString(),
       title: result.title,
-      tasks: [],
+      tasks: result.tasks,
       deleteOnComplete: result.deleteOnComplete,
       resetOnComplete: result.resetOnComplete,
       resetAt: result.resetAt,
-      totalTasks: 0,
-      completedTasks: 0,
+      totalTasks: result.totalTasks,
+      completedTasks: result.completedTasks,
       resetInterval: result.resetInterval,
       completed: result.completed,
     };
@@ -298,11 +311,16 @@ export const getTasksForList = (list_id: string) => {
 };
 
 // Add List
-export const addList = (title: string, deleteOnComplete: boolean) => {
-  db.runSync(`INSERT INTO lists (title, deleteOnComplete) VALUES (?, ?);`, [
-    title,
-    deleteOnComplete,
-  ]);
+export const addList = (
+  title: string,
+  deleteOnComplete: boolean,
+  resetOnComplete: boolean,
+  resetInterval: string | null
+) => {
+  db.runSync(
+    `INSERT INTO lists (title, completed, deleteOnComplete, resetOnComplete, resetInterval) VALUES (?, ?, ?, ?, ?);`,
+    [title, false, deleteOnComplete, resetOnComplete, resetInterval]
+  );
 };
 
 const listComplete = (id: string) => {
@@ -337,15 +355,23 @@ export const checkIfListComplete = (id: string) => {
 
 // Update List
 export const updateList = (id: string, updates: Partial<ListDisplay>) => {
+  const currentList = getListById(id);
+  if (!currentList) return;
+  if (currentList.deleteOnComplete) {
+    updates.resetOnComplete = false;
+    updates.resetAt = undefined;
+    updates.resetInterval = null;
+  }
+
   db.runSync(
     `UPDATE lists SET title = ?, deleteOnComplete = ?, resetOnComplete = ?, resetAt = ?, resetInterval = ?, completed = ? WHERE id = ?;`,
     [
-      updates.title ?? "",
-      updates.deleteOnComplete ?? false,
-      updates.resetOnComplete ?? false,
-      updates.resetAt ?? null,
-      updates.resetInterval ?? null,
-      updates.completed ?? false,
+      updates.title ?? currentList.title,
+      updates.deleteOnComplete ?? currentList.deleteOnComplete ?? false,
+      updates.resetOnComplete ?? currentList.resetOnComplete ?? false,
+      updates.resetAt ?? currentList.resetAt ?? null,
+      updates.resetInterval ?? currentList.resetInterval ?? null,
+      updates.completed ?? currentList.completed ?? false,
       id,
     ]
   );

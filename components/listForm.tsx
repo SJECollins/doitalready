@@ -88,7 +88,12 @@ export default function ListForm({ listId }: { listId: string | null }) {
         triggerMessage("List title cannot be empty", "error");
         return;
       }
-      addList(list.title, list.deleteOnComplete);
+      addList(
+        list.title,
+        list.deleteOnComplete,
+        list.resetOnComplete,
+        list.resetInterval
+      );
       triggerMessage("List added successfully", "success");
       router.back();
     } catch (error) {
@@ -102,7 +107,7 @@ export default function ListForm({ listId }: { listId: string | null }) {
     if (list.resetOnComplete && !list.resetInterval) {
       setList({ ...list, resetInterval: "hour" });
     }
-    if (list.resetOnComplete && list.deleteOnComplete) {
+    if (!list.resetOnComplete && list.deleteOnComplete) {
       setList({ ...list, deleteOnComplete: false });
       triggerMessage(
         "Reset on Complete is not compatible with Delete on Complete, disabling Delete on Complete",
@@ -158,22 +163,43 @@ export default function ListForm({ listId }: { listId: string | null }) {
             status={list.resetOnComplete ? "checked" : "unchecked"}
             onPress={handleResetSchedulerToggle}
           />
-          ;<Text>Reset on complete</Text>
+          <Text>Reset on complete</Text>
         </View>
 
         {resetSchedulerVisible && (
           <Picker
             mode="dropdown"
+            style={styles.pickerStyle}
             selectedValue={list.resetInterval || "hour"}
             onValueChange={(itemValue) =>
               setList({ ...list, resetInterval: itemValue })
             }
           >
-            <Picker.Item label="Hour" value="hour" />
-            <Picker.Item label="Day" value="day" />
-            <Picker.Item label="Week" value="week" />
-            <Picker.Item label="Month" value="month" />
-            <Picker.Item label="Year" value="year" />
+            <Picker.Item
+              label="Hour"
+              value="hour"
+              style={styles.pickerItemStyle}
+            />
+            <Picker.Item
+              label="Day"
+              value="day"
+              style={styles.pickerItemStyle}
+            />
+            <Picker.Item
+              label="Week"
+              value="week"
+              style={styles.pickerItemStyle}
+            />
+            <Picker.Item
+              label="Month"
+              value="month"
+              style={styles.pickerItemStyle}
+            />
+            <Picker.Item
+              label="Year"
+              value="year"
+              style={styles.pickerItemStyle}
+            />
           </Picker>
         )}
         <Text variant="labelSmall">

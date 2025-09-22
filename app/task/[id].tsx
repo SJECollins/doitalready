@@ -10,17 +10,15 @@ import {
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { View } from "react-native";
-import { Button, Modal, Text, useTheme } from "react-native-paper";
+import { Button, Modal, Portal, Text } from "react-native-paper";
 import { useMessage } from "../_layout";
 
 export default function TaskScreen() {
-  const theme = useTheme();
   const styles = useStyles();
   const { triggerMessage } = useMessage();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [task, setTask] = useState<Task | null>(null);
   const [list, setList] = useState<ListDisplay | null>(null);
-  const [changed, setChanged] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
 
   useEffect(() => {
@@ -39,6 +37,7 @@ export default function TaskScreen() {
   const handleDeleteTask = (taskId: string) => {
     try {
       deleteTask(taskId);
+      setModalVisible(false);
       triggerMessage("Task deleted successfully", "success");
       router.push("/");
     } catch (error) {
@@ -46,6 +45,14 @@ export default function TaskScreen() {
       triggerMessage(`Error deleting task: ${errMsg}`, "error");
     }
   };
+
+  console.log("task.title:", task?.title, typeof task?.title);
+  console.log("list.title:", list?.title, typeof list?.title);
+  console.log(
+    "task.resetInterval:",
+    task?.resetInterval,
+    typeof task?.resetInterval
+  );
 
   return (
     <PageView>
@@ -55,9 +62,7 @@ export default function TaskScreen() {
       </Text>
       {list ? (
         <View style={styles.row}>
-          <Text variant="bodyMedium" style={{ marginTop: 10 }}>
-            List: {list.title}
-          </Text>
+          <Text variant="bodyMedium">List: {list.title}</Text>
           <Button
             mode="text"
             onPress={() => {
@@ -68,10 +73,17 @@ export default function TaskScreen() {
           </Button>
         </View>
       ) : (
-        <Text variant="bodyMedium" style={{ marginTop: 10 }}>
-          List: None
-        </Text>
+        <Text variant="bodyMedium">List: None</Text>
       )}
+      {task.deleteOnComplete ? (
+        <Text variant="bodyMedium">
+          This task will be deleted upon completion.
+        </Text>
+      ) : task.resetOnComplete && task.resetInterval ? (
+        <Text variant="bodyMedium">
+          This task will reset to incomplete after one {task.resetInterval}.
+        </Text>
+      ) : null}
       <View style={styles.row}>
         <Button
           mode="contained"
@@ -90,23 +102,21 @@ export default function TaskScreen() {
           Delete
         </Button>
       </View>
-      <Modal
-        visible={modalVisible}
-        onDismiss={() => setModalVisible(false)}
-        style={{
-          padding: 20,
-          position: "absolute",
-          top: "10%",
-          left: "10%",
-          right: "10%",
-        }}
-      >
-        <Text>Are you sure you want to delete this task?</Text>
-        <View style={{ flexDirection: "row", justifyContent: "space-around" }}>
-          <Button onPress={() => handleDeleteTask(task.id)}>Delete</Button>
-          <Button onPress={() => setModalVisible(false)}>Cancel</Button>
-        </View>
-      </Modal>
+      <Portal>
+        <Modal
+          visible={modalVisible}
+          onDismiss={() => setModalVisible(false)}
+          contentContainerStyle={styles.modalStyle}
+        >
+          <Text>Are you sure you want to delete this task?</Text>
+          <View
+            style={{ flexDirection: "row", justifyContent: "space-around" }}
+          >
+            <Button onPress={() => handleDeleteTask(task.id)}>Delete</Button>
+            <Button onPress={() => setModalVisible(false)}>Cancel</Button>
+          </View>
+        </Modal>
+      </Portal>
     </PageView>
   );
 }

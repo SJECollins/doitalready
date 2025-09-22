@@ -3,7 +3,6 @@ import {
   checkIfListComplete,
   deleteList,
   getListById,
-  getTasksForList,
   ListDisplay,
   Task,
   updateList,
@@ -41,7 +40,7 @@ export default function ListScreen() {
       triggerMessage("List not found", "error");
       return;
     }
-    const tasks = getTasksForList(id);
+    const tasks = fetchedList.tasks || [];
     setList(fetchedList);
     setIncompleteTasks(tasks.filter((task) => !task.completed));
     setCompletedTasks(tasks.filter((task) => task.completed));
@@ -78,11 +77,13 @@ export default function ListScreen() {
     } else {
       task.completed = false;
     }
-
+    console.log(task.deleteOnComplete);
+    console.log(`Toggling task ${task.id} to ${task.completed}`);
     updateTask(taskId, { completed: task.completed });
 
     // Check if all tasks in the list are completed
     if (task.completed) {
+      console.log("Task completed, checking list status...");
       if (checkIfListComplete(list.id)) {
         list.completed = true;
         updateList(list.id, { completed: true });
@@ -103,6 +104,12 @@ export default function ListScreen() {
   return (
     <PageView>
       <Text variant="headlineLarge">{list.title}</Text>
+      {list.deleteOnComplete && (
+        <Text variant="bodyMedium">Set to delete on completion</Text>
+      )}
+      {list.resetOnComplete && (
+        <Text variant="bodyMedium">Set to reset on completion</Text>
+      )}
       {!list.completed ? (
         <Text variant="bodyMedium">
           {list.completedTasks}/{list.totalTasks} Tasks Completed
@@ -110,10 +117,9 @@ export default function ListScreen() {
       ) : (
         <Text variant="bodyMedium">All tasks completed! 🎉</Text>
       )}
-      <Divider />
-      <Text variant="titleLarge" onPress={toggleShowIncomplete}>
-        Incomplete Tasks
-      </Text>
+
+      <Divider style={{ marginVertical: 16 }} />
+
       <View style={styles.row}>
         <Button
           mode="contained"
@@ -138,6 +144,10 @@ export default function ListScreen() {
           Add Task
         </Button>
       </View>
+      <Divider style={{ marginVertical: 16 }} />
+      <Text variant="titleLarge" onPress={toggleShowIncomplete}>
+        Incomplete Tasks
+      </Text>
       {showIncomplete && (
         <ScrollView>
           <Text>{incompleteTasks.length} Incomplete Tasks</Text>
@@ -196,13 +206,17 @@ export default function ListScreen() {
         </ScrollView>
       )}
       <Modal visible={modalVisible} onDismiss={() => setModalVisible(false)}>
-        <Text>
-          Are you sure you want to delete this list? It will remove associated
-          tasks.
-        </Text>
-        <View style={{ flexDirection: "row", justifyContent: "space-around" }}>
-          <Button onPress={() => handleDeleteList(list.id)}>Delete</Button>
-          <Button onPress={() => setModalVisible(false)}>Cancel</Button>
+        <View style={styles.modalStyle}>
+          <Text>
+            Are you sure you want to delete this list? It will remove associated
+            tasks.
+          </Text>
+          <View
+            style={{ flexDirection: "row", justifyContent: "space-around" }}
+          >
+            <Button onPress={() => handleDeleteList(list.id)}>Delete</Button>
+            <Button onPress={() => setModalVisible(false)}>Cancel</Button>
+          </View>
         </View>
       </Modal>
     </PageView>

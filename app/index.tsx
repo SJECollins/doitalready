@@ -12,7 +12,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import { ScrollView, View } from "react-native";
-import { Divider, IconButton, List, Text } from "react-native-paper";
+import { Button, Divider, IconButton, List, Text } from "react-native-paper";
 import useStyles from "../assets/styles";
 
 export default function HomeScreen() {
@@ -96,9 +96,19 @@ export default function HomeScreen() {
         </Text>
         <ScrollView>
           {tasks.length === 0 && (
-            <Text variant="bodyMedium" style={styles.empty}>
-              No tasks yet
-            </Text>
+            <View style={styles.col}>
+              <Text variant="bodyMedium" style={styles.empty}>
+                No tasks yet
+              </Text>
+              <View style={styles.btnRow}>
+                <Button
+                  mode="contained"
+                  onPress={() => router.push("/task/add")}
+                >
+                  Add Task
+                </Button>
+              </View>
+            </View>
           )}
           {tasks.map((task) => (
             <List.Item
@@ -138,9 +148,19 @@ export default function HomeScreen() {
         </Text>
         <ScrollView>
           {lists.length === 0 && (
-            <Text variant="bodyMedium" style={styles.empty}>
-              No lists yet
-            </Text>
+            <View style={styles.col}>
+              <Text variant="bodyMedium" style={styles.empty}>
+                No lists yet
+              </Text>
+              <View style={styles.btnRow}>
+                <Button
+                  mode="contained"
+                  onPress={() => router.push("/list/add")}
+                >
+                  Add List
+                </Button>
+              </View>
+            </View>
           )}
           {lists.map((list) => (
             <List.Item
