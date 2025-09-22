@@ -1,24 +1,25 @@
-import { useState, useEffect } from "react";
-import { Text, TextInput, Button, useTheme, Modal } from "react-native-paper";
-import { router, useLocalSearchParams } from "expo-router";
+import useStyles from "@/assets/styles";
+import PageView from "@/components/pageView";
 import {
-  getTaskById,
-  updateTask,
   deleteTask,
   getListById,
+  getTaskById,
+  ListDisplay,
   Task,
-  TaskList,
 } from "@/lib/db";
-import PageView from "@/components/pageView";
-import { useMessage } from "../_layout";
+import { router, useLocalSearchParams } from "expo-router";
+import { useEffect, useState } from "react";
 import { View } from "react-native";
+import { Button, Modal, Text, useTheme } from "react-native-paper";
+import { useMessage } from "../_layout";
 
 export default function TaskScreen() {
   const theme = useTheme();
+  const styles = useStyles();
   const { triggerMessage } = useMessage();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [task, setTask] = useState<Task | null>(null);
-  const [list, setList] = useState<TaskList | null>(null);
+  const [list, setList] = useState<ListDisplay | null>(null);
   const [changed, setChanged] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
 
@@ -35,82 +36,60 @@ export default function TaskScreen() {
     return <Text>Loading...</Text>;
   }
 
-  const handleUpdateTask = (taskId: string) => {
-    if (task) {
-      updateTask(task.id, {
-        title: task.title,
-        list_id: task.list_id,
-      });
-    }
-    triggerMessage("Task updated successfully", "success");
-    router.back();
-  };
-
   const handleDeleteTask = (taskId: string) => {
-    deleteTask(taskId);
-    triggerMessage("Task deleted successfully", "success");
-    router.back();
-  };
-
-  const removeFromList = () => {
-    if (!task || !list) return;
-    setList({
-      ...list,
-      tasks: list.tasks?.filter((t) => t.id !== task.id) ?? [],
-    });
-    setTask({ ...task, list_id: undefined });
-    setChanged(true);
+    try {
+      deleteTask(taskId);
+      triggerMessage("Task deleted successfully", "success");
+      router.push("/");
+    } catch (error) {
+      const errMsg = error instanceof Error ? error.message : String(error);
+      triggerMessage(`Error deleting task: ${errMsg}`, "error");
+    }
   };
 
   return (
     <PageView>
-      <Text variant="titleLarge">Task Title:</Text>
-      <TextInput
-        value={task.title}
-        onChangeText={(text) => {
-          setTask({ ...task, title: text });
-          setChanged(true);
-        }}
-      />
+      <Text variant="headlineLarge">{task.title}</Text>
       <Text variant="bodyMedium">
-        {task.completed ? "Completed" : "Incomplete"}
+        Status: {task.completed ? "Completed" : "Incomplete"}
       </Text>
-      {list && (
-        <>
-          <Text
-            variant="bodyMedium"
-            style={{ marginTop: 10 }}
+      {list ? (
+        <View style={styles.row}>
+          <Text variant="bodyMedium" style={{ marginTop: 10 }}>
+            List: {list.title}
+          </Text>
+          <Button
+            mode="text"
             onPress={() => {
-              if (list) {
-                router.push(`../list/${list.id}`);
-              }
+              router.push({ pathname: "/list/[id]", params: { id: list.id } });
             }}
           >
-            Part of List: {list.title}
-          </Text>
-          <Button mode="contained" onPress={removeFromList}>
-            Remove from List
+            View
           </Button>
-        </>
+        </View>
+      ) : (
+        <Text variant="bodyMedium" style={{ marginTop: 10 }}>
+          List: None
+        </Text>
       )}
-      {changed && (
+      <View style={styles.row}>
         <Button
           mode="contained"
-          style={{ marginTop: 10 }}
-          buttonColor={theme.colors.primary}
-          onPress={() => handleUpdateTask(task.id)}
+          style={styles.btn}
+          onPress={() => {
+            router.push({ pathname: "/task/edit", params: { id: task.id } });
+          }}
         >
-          Save Changes
+          Edit
         </Button>
-      )}
-      <Button
-        mode="contained"
-        style={{ marginTop: 10 }}
-        buttonColor={theme.colors.primary}
-        onPress={() => setModalVisible(true)}
-      >
-        Delete Task
-      </Button>
+        <Button
+          mode="contained"
+          style={styles.btn}
+          onPress={() => setModalVisible(true)}
+        >
+          Delete
+        </Button>
+      </View>
       <Modal
         visible={modalVisible}
         onDismiss={() => setModalVisible(false)}

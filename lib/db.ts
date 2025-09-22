@@ -326,6 +326,15 @@ export const resetListTasks = (id: string) => {
   });
 };
 
+export const checkIfListComplete = (id: string) => {
+  const tasks = getTasksForList(id);
+  if (tasks.length === 0) return false;
+  if (tasks.every((task) => task.completed)) {
+    return true;
+  }
+  return false;
+};
+
 // Update List
 export const updateList = (id: string, updates: Partial<ListDisplay>) => {
   db.runSync(

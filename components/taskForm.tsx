@@ -25,7 +25,13 @@ const initialTaskState: Omit<Task, "id"> = {
   completed: false,
 };
 
-export default function TaskForm({ taskId }: { taskId: string | null }) {
+export default function TaskForm({
+  taskId,
+  listId,
+}: {
+  taskId: string | null;
+  listId: string | null;
+}) {
   const { triggerMessage } = useMessage();
   const router = useRouter();
   const styles = useStyles();
@@ -44,6 +50,16 @@ export default function TaskForm({ taskId }: { taskId: string | null }) {
         setLists([]);
         triggerMessage("No lists found", "info");
       }
+      // If listId is provided (from AddTask), pre-select that list
+      if (listId) {
+        if (allLists.find((list) => list.id === listId)) {
+          setSelectedListId(listId);
+        } else {
+          triggerMessage("Provided list not found", "error");
+        }
+      }
+
+      // If editing an existing task, load its data
       if (taskId) {
         const fetchedTask = getTaskById(taskId);
         if (fetchedTask) {

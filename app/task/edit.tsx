@@ -9,5 +9,5 @@ export default function EditTask() {
     return <Text>No task ID provided</Text>;
   }
 
-  return <TaskForm taskId={taskId} />;
+  return <TaskForm taskId={taskId} listId={null} />;
 }

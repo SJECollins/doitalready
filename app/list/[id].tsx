@@ -1,39 +1,38 @@
-import { useState, useCallback } from "react";
-import { View, ScrollView } from "react-native";
+import PageView from "@/components/pageView";
 import {
-  Text,
-  TextInput,
-  Button,
-  useTheme,
-  List,
-  IconButton,
-  Modal,
-} from "react-native-paper";
-import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
-import {
-  addTask,
-  updateTask,
+  checkIfListComplete,
+  deleteList,
   getListById,
   getTasksForList,
-  updateList,
-  deleteList,
+  ListDisplay,
   Task,
-  TaskList,
+  updateList,
+  updateTask,
 } from "@/lib/db";
-import PageView from "@/components/pageView";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
+import { useCallback, useState } from "react";
+import { ScrollView, View } from "react-native";
+import {
+  Button,
+  Divider,
+  IconButton,
+  List,
+  Modal,
+  Text,
+} from "react-native-paper";
+import useStyles from "../../assets/styles";
 import { useMessage } from "../_layout";
 
 export default function ListScreen() {
-  const theme = useTheme();
+  const styles = useStyles();
   const { triggerMessage } = useMessage();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const [list, setList] = useState<TaskList | null>(null);
+  const [list, setList] = useState<ListDisplay | null>(null);
   const [incompleteTasks, setIncompleteTasks] = useState<Task[]>([]);
   const [completedTasks, setCompletedTasks] = useState<Task[]>([]);
   const [showIncomplete, setShowIncomplete] = useState(true);
   const [showCompleted, setShowCompleted] = useState(true);
-  const [changed, setChanged] = useState(false);
-  const [newTaskTitle, setNewTaskTitle] = useState("");
+
   const [modalVisible, setModalVisible] = useState(false);
 
   const loadData = () => {
@@ -58,14 +57,6 @@ export default function ListScreen() {
     return <Text>Loading...</Text>;
   }
 
-  const handleUpdateList = (listId: string) => {
-    if (list) {
-      updateList(list.id, list.title);
-    }
-    triggerMessage("List updated successfully", "success");
-    router.back();
-  };
-
   const toggleShowIncomplete = () => {
     setShowIncomplete((prev) => !prev);
     if (showCompleted) setShowCompleted(false);
@@ -74,17 +65,6 @@ export default function ListScreen() {
   const toggleShowCompleted = () => {
     setShowCompleted((prev) => !prev);
     if (showIncomplete) setShowIncomplete(false);
-  };
-
-  const handleAddTask = () => {
-    if (newTaskTitle.trim() === "") {
-      triggerMessage("Task title cannot be empty", "error");
-      return;
-    }
-    if (newTaskTitle.trim()) addTask(newTaskTitle, list.id);
-    setNewTaskTitle("");
-    triggerMessage("Task added successfully", "success");
-    loadData();
   };
 
   const handleCompleteTask = (taskId: string) => {
@@ -100,6 +80,17 @@ export default function ListScreen() {
     }
 
     updateTask(taskId, { completed: task.completed });
+
+    // Check if all tasks in the list are completed
+    if (task.completed) {
+      if (checkIfListComplete(list.id)) {
+        list.completed = true;
+        updateList(list.id, { completed: true });
+        triggerMessage("All tasks completed! List complete.", "success");
+        router.push("/");
+      }
+    }
+
     loadData();
   };
 
@@ -111,44 +102,42 @@ export default function ListScreen() {
 
   return (
     <PageView>
-      <Text variant="titleLarge">{list.title}</Text>
-      <TextInput
-        value={list.title}
-        onChangeText={(text) => {
-          setList({ ...list, title: text });
-          setChanged(true);
-        }}
-      />
-      <Text variant="bodyMedium">
-        {list.completed ? "Completed" : "Incomplete"}
-      </Text>
-      {changed && (
-        <Button
-          mode="contained"
-          style={{ marginTop: 10 }}
-          buttonColor={theme.colors.primary}
-          onPress={() => handleUpdateList(list.id)}
-        >
-          Save Changes
-        </Button>
+      <Text variant="headlineLarge">{list.title}</Text>
+      {!list.completed ? (
+        <Text variant="bodyMedium">
+          {list.completedTasks}/{list.totalTasks} Tasks Completed
+        </Text>
+      ) : (
+        <Text variant="bodyMedium">All tasks completed! 🎉</Text>
       )}
-      <Text variant="titleLarge">Add Task</Text>
-      <TextInput
-        label="Task Title"
-        value={newTaskTitle}
-        onChangeText={setNewTaskTitle}
-      />
-      <Button
-        mode="contained"
-        style={{ marginTop: 10 }}
-        buttonColor={theme.colors.primary}
-        onPress={handleAddTask}
-      >
-        Add Task
-      </Button>
+      <Divider />
       <Text variant="titleLarge" onPress={toggleShowIncomplete}>
         Incomplete Tasks
       </Text>
+      <View style={styles.row}>
+        <Button
+          mode="contained"
+          onPress={() =>
+            router.push({ pathname: "/list/edit", params: { id: list.id } })
+          }
+        >
+          Edit
+        </Button>
+
+        <Button mode="outlined" onPress={() => setModalVisible(true)}>
+          Delete
+        </Button>
+      </View>
+      <View style={styles.btnRow}>
+        <Button
+          mode="contained"
+          onPress={() =>
+            router.push({ pathname: "/task/add", params: { listId: list.id } })
+          }
+        >
+          Add Task
+        </Button>
+      </View>
       {showIncomplete && (
         <ScrollView>
           <Text>{incompleteTasks.length} Incomplete Tasks</Text>
