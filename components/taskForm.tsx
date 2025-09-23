@@ -35,8 +35,6 @@ export default function TaskForm({
   const { triggerMessage } = useMessage();
   const router = useRouter();
   const styles = useStyles();
-
-  const [resetSchedulerVisible, setResetSchedulerVisible] = useState(false);
   const [lists, setLists] = useState<TaskList[]>([]);
   const [selectedListId, setSelectedListId] = useState<string | "none">("none");
   const [task, setTask] = useState<Omit<Task, "id">>(initialTaskState);
@@ -164,7 +162,6 @@ export default function TaskForm({
         "Delete on complete is not compatible with Reset on complete. Disabling Reset on complete.",
         "info"
       );
-      setResetSchedulerVisible(false);
     }
   };
 

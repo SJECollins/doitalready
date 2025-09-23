@@ -95,7 +95,7 @@ export default function HomeScreen() {
           Tasks not assigned to any list
         </Text>
         <ScrollView>
-          {tasks.length === 0 && (
+          {tasks.length === 0 ? (
             <View style={styles.col}>
               <Text variant="bodyMedium" style={styles.empty}>
                 No tasks yet
@@ -109,30 +109,31 @@ export default function HomeScreen() {
                 </Button>
               </View>
             </View>
+          ) : (
+            tasks.map((task) => (
+              <List.Item
+                key={task.id}
+                title={task.title}
+                titleStyle={task.completed ? styles.completed : undefined}
+                left={() => (
+                  <IconButton
+                    icon={
+                      task.completed
+                        ? "check-circle"
+                        : "checkbox-blank-circle-outline"
+                    }
+                    onPress={() => handleCompleteTask(task.id)}
+                  />
+                )}
+                right={() => (
+                  <IconButton
+                    icon="pencil"
+                    onPress={() => router.push(`./task/${task.id}`)}
+                  />
+                )}
+              />
+            ))
           )}
-          {tasks.map((task) => (
-            <List.Item
-              key={task.id}
-              title={task.title}
-              titleStyle={task.completed ? styles.completed : undefined}
-              left={() => (
-                <IconButton
-                  icon={
-                    task.completed
-                      ? "check-circle"
-                      : "checkbox-blank-circle-outline"
-                  }
-                  onPress={() => handleCompleteTask(task.id)}
-                />
-              )}
-              right={() => (
-                <IconButton
-                  icon="pencil"
-                  onPress={() => router.push(`./task/${task.id}`)}
-                />
-              )}
-            />
-          ))}
         </ScrollView>
       </View>
 
@@ -147,7 +148,7 @@ export default function HomeScreen() {
           View and manage your lists
         </Text>
         <ScrollView>
-          {lists.length === 0 && (
+          {lists.length === 0 ? (
             <View style={styles.col}>
               <Text variant="bodyMedium" style={styles.empty}>
                 No lists yet
@@ -161,17 +162,18 @@ export default function HomeScreen() {
                 </Button>
               </View>
             </View>
+          ) : (
+            lists.map((list) => (
+              <List.Item
+                key={list.id}
+                title={list.title}
+                titleStyle={list.completed ? styles.completed : undefined}
+                description={`${list.completedTasks} / ${list.totalTasks} tasks complete`}
+                onPress={() => router.push(`./list/${list.id}`)}
+                left={() => <List.Icon icon="folder-outline" />}
+              />
+            ))
           )}
-          {lists.map((list) => (
-            <List.Item
-              key={list.id}
-              title={list.title}
-              titleStyle={list.completed ? styles.completed : undefined}
-              description={`${list.completedTasks} / ${list.totalTasks} tasks complete`}
-              onPress={() => router.push(`./list/${list.id}`)}
-              left={() => <List.Icon icon="folder-outline" />}
-            />
-          ))}
         </ScrollView>
       </View>
     </PageView>

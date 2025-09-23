@@ -152,8 +152,6 @@ export const addTask = (
 // Update Task
 export const updateTask = (id: string, updates: Partial<Task>) => {
   const taskToUpdate = getTaskById(id);
-  console.log("Current task:", taskToUpdate?.list_id);
-  console.log("Updating task:", id, updates);
   if (!taskToUpdate) {
     return;
   }
@@ -178,7 +176,6 @@ export const updateTask = (id: string, updates: Partial<Task>) => {
       id,
     ]
   );
-  console.log("Task updated:", id, updates);
   // If task is marked completed and deleteOnComplete is true, delete the task
   const updatedTask = getTaskById(id);
   if (!updatedTask) return;

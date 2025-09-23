@@ -28,9 +28,6 @@ const useStyles = () => {
       justifyContent: "space-evenly",
       alignItems: "center",
     },
-    divider: {
-      marginVertical: 10,
-    },
     container: {
       flex: 1,
       flexDirection: "column",
@@ -41,6 +38,7 @@ const useStyles = () => {
     },
     header: {
       marginBottom: 8,
+      alignSelf: "center",
     },
     empty: {
       textAlign: "center",
@@ -66,6 +64,12 @@ const useStyles = () => {
       shadowColor: "#000",
       alignItems: "center",
       justifyContent: "center",
+    },
+    divider: {
+      marginVertical: 16,
+      height: 2,
+      width: "110%",
+      alignSelf: "center",
     },
   });
 };

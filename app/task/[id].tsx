@@ -46,14 +46,6 @@ export default function TaskScreen() {
     }
   };
 
-  console.log("task.title:", task?.title, typeof task?.title);
-  console.log("list.title:", list?.title, typeof list?.title);
-  console.log(
-    "task.resetInterval:",
-    task?.resetInterval,
-    typeof task?.resetInterval
-  );
-
   return (
     <PageView>
       <Text variant="headlineLarge">{task.title}</Text>
