@@ -57,7 +57,7 @@ export default function HomeScreen() {
     });
 
     const sortedLists = [...lists].sort((a, b) =>
-      a.title.localeCompare(b.title)
+      a.completed === b.completed ? 0 : a.completed ? 1 : -1
     );
     setLists(sortedLists);
   };
@@ -88,7 +88,7 @@ export default function HomeScreen() {
     <PageView>
       {/* Top Half: Unassigned Tasks */}
       <View style={styles.section}>
-        <Text variant="titleLarge" style={styles.header}>
+        <Text variant="headlineLarge" style={styles.header}>
           Main Tasks
         </Text>
         <Text variant="labelSmall" style={{ marginBottom: 8 }}>
@@ -115,6 +115,7 @@ export default function HomeScreen() {
                 key={task.id}
                 title={task.title}
                 titleStyle={task.completed ? styles.completed : undefined}
+                style={styles.listItem}
                 left={() => (
                   <IconButton
                     icon={
@@ -141,7 +142,7 @@ export default function HomeScreen() {
 
       {/* Bottom Half: Lists */}
       <View style={styles.section}>
-        <Text variant="titleLarge" style={styles.header}>
+        <Text variant="headlineLarge" style={styles.header}>
           Lists
         </Text>
         <Text variant="labelSmall" style={{ marginBottom: 8 }}>
@@ -171,6 +172,7 @@ export default function HomeScreen() {
                 description={`${list.completedTasks} / ${list.totalTasks} tasks complete`}
                 onPress={() => router.push(`./list/${list.id}`)}
                 left={() => <List.Icon icon="folder-outline" />}
+                style={styles.listItemLists}
               />
             ))
           )}

@@ -42,22 +42,8 @@ export default function TaskForm({
   const loadData = () => {
     try {
       const allLists = getLists();
-      if (allLists) {
-        setLists(allLists);
-      } else {
-        setLists([]);
-        triggerMessage("No lists found", "info");
-      }
-      // If listId is provided (from AddTask), pre-select that list
-      if (listId) {
-        if (allLists.find((list) => list.id === listId)) {
-          setSelectedListId(listId);
-        } else {
-          triggerMessage("Provided list not found", "error");
-        }
-      }
+      setLists(allLists ?? []);
 
-      // If editing an existing task, load its data
       if (taskId) {
         const fetchedTask = getTaskById(taskId);
         if (fetchedTask) {
@@ -71,10 +57,12 @@ export default function TaskForm({
             completed: fetchedTask.completed,
           });
           setSelectedListId(fetchedTask.list_id ?? "none");
-        } else {
-          triggerMessage("Task not found", "error");
+          return;
         }
+        triggerMessage("Task not found", "error");
       }
+      setTask({ ...initialTaskState });
+      setSelectedListId(listId ?? "none");
     } catch (error) {
       const errMsg = error instanceof Error ? error.message : String(error);
       triggerMessage(`Error loading task: ${errMsg}`, "error");
@@ -84,7 +72,7 @@ export default function TaskForm({
   useFocusEffect(
     useCallback(() => {
       loadData();
-    }, [])
+    }, [taskId, listId])
   );
 
   const validateTask = () => {
@@ -122,6 +110,10 @@ export default function TaskForm({
         task.resetInterval
       );
       triggerMessage("Task added successfully", "success");
+      if (list_id) {
+        router.push(`/list/${list_id}`);
+        return;
+      }
       router.back();
     } catch (error) {
       const errMsg = error instanceof Error ? error.message : String(error);
@@ -145,6 +137,7 @@ export default function TaskForm({
         deleteOnComplete: task.deleteOnComplete,
         resetOnComplete: task.resetOnComplete,
         resetInterval: task.resetInterval,
+        completed: task.completed,
       });
       triggerMessage("Task updated successfully", "success");
       router.back();
@@ -228,7 +221,7 @@ export default function TaskForm({
         </Picker>
       </View>
 
-      {lists.length === 0 && (
+      {lists.length === 0 ? (
         <View>
           <Text variant="bodySmall">
             No lists found. If you want to add this task to a list, create the
@@ -244,10 +237,10 @@ export default function TaskForm({
             </Button>
           </View>
         </View>
-      )}
+      ) : null}
 
       {/* Only show these options if the task is not part of a list */}
-      {selectedListId === "none" && (
+      {selectedListId === "none" ? (
         <>
           <View style={styles.formGroup}>
             <Text variant="bodyMedium">Delete when completed?</Text>
@@ -275,7 +268,7 @@ export default function TaskForm({
               />
               <Text>Reset on complete</Text>
             </View>
-            {task.resetOnComplete && (
+            {task.resetOnComplete ? (
               <Picker
                 mode="dropdown"
                 selectedValue={task.resetInterval || "hour"}
@@ -310,7 +303,7 @@ export default function TaskForm({
                   style={styles.pickerItemStyle}
                 />
               </Picker>
-            )}
+            ) : null}
             <Text variant="labelSmall">
               If enabled, this task will be reset to incomplete after marked as
               completed. You can specify the interval to reset (1 hour is
@@ -319,21 +312,39 @@ export default function TaskForm({
             </Text>
           </View>
         </>
-      )}
+      ) : null}
 
-      {task.completed && (
-        <View style={styles.formGroup}>
-          <Text variant="bodyMedium">
-            This task is currently marked as completed.
-          </Text>
-          <Button
-            mode="outlined"
-            onPress={() => setTask({ ...task, completed: false })}
-          >
-            Mark as Incomplete
-          </Button>
-        </View>
-      )}
+      {taskId ? (
+        task.completed ? (
+          <View style={styles.formGroup}>
+            <Text variant="bodyMedium">
+              This task is currently marked as completed.
+            </Text>
+            <View style={styles.btnRow}>
+              <Button
+                style={styles.btn}
+                mode="outlined"
+                onPress={() => setTask({ ...task, completed: false })}
+              >
+                Mark as Incomplete
+              </Button>
+            </View>
+          </View>
+        ) : (
+          <View style={styles.formGroup}>
+            <Text variant="bodyMedium">This task is currently incomplete.</Text>
+            <View style={styles.btnRow}>
+              <Button
+                mode="outlined"
+                onPress={() => setTask({ ...task, completed: true })}
+                style={styles.btn}
+              >
+                Mark as Completed
+              </Button>
+            </View>
+          </View>
+        )
+      ) : null}
 
       <View style={styles.btnRow}>
         <Button

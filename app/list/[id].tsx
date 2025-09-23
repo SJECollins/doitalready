@@ -4,6 +4,7 @@ import {
   deleteList,
   getListById,
   ListDisplay,
+  resetList,
   Task,
   updateList,
   updateTask,
@@ -47,7 +48,7 @@ export default function ListScreen() {
   useFocusEffect(
     useCallback(() => {
       loadData();
-    }, [])
+    }, [id])
   );
 
   if (!list) {
@@ -65,6 +66,10 @@ export default function ListScreen() {
     } else {
       task.completed = false;
     }
+    triggerMessage(
+      `Task marked as ${task.completed ? "complete" : "incomplete"}`,
+      "success"
+    );
 
     updateTask(taskId, { completed: task.completed });
 
@@ -119,6 +124,9 @@ export default function ListScreen() {
         >
           Edit
         </Button>
+        <Button mode="contained-tonal" onPress={() => resetList(list.id)}>
+          Reset
+        </Button>
 
         <Button mode="outlined" onPress={() => setModalVisible(true)}>
           Delete
@@ -136,58 +144,62 @@ export default function ListScreen() {
       </View>
       <Divider style={styles.divider} />
       <Text variant="titleLarge">Incomplete Tasks</Text>
-      <ScrollView>
-        <Text>{incompleteTasks.length} Incomplete Tasks</Text>
-        {incompleteTasks.map((task) => (
-          <List.Item
-            key={task.id}
-            title={task.title}
-            left={() => (
-              <IconButton
-                icon={
-                  task.completed
-                    ? "check-circle"
-                    : "checkbox-blank-circle-outline"
-                }
-                onPress={() => handleCompleteTask(task.id)}
-              />
-            )}
-            right={() => (
-              <IconButton
-                icon="pencil"
-                onPress={() => router.push(`../task/${task.id}`)}
-              />
-            )}
-          />
-        ))}
-      </ScrollView>
-      <Divider style={styles.divider} />
-      <Text variant="titleLarge">Completed Tasks</Text>
-      <ScrollView>
-        <Text>{completedTasks.length} Completed Tasks</Text>
-        {completedTasks.map((task) => (
-          <List.Item
-            key={task.id}
-            title={task.title}
-            left={() => (
-              <IconButton
-                icon={
-                  task.completed
-                    ? "check-circle"
-                    : "checkbox-blank-circle-outline"
-                }
-                onPress={() => handleCompleteTask(task.id)}
-              />
-            )}
-            right={() => (
-              <IconButton
-                icon="pencil"
-                onPress={() => router.push(`../task/${task.id}`)}
-              />
-            )}
-          />
-        ))}
-      </ScrollView>
+      <View style={{ flex: 1 }}>
+        <ScrollView style={styles.section}>
+          <Text>{incompleteTasks.length} Incomplete Tasks</Text>
+          {incompleteTasks.map((task) => (
+            <List.Item
+              key={task.id}
+              title={task.title}
+              style={styles.listItem}
+              left={() => (
+                <IconButton
+                  icon={
+                    task.completed
+                      ? "check-circle"
+                      : "checkbox-blank-circle-outline"
+                  }
+                  onPress={() => handleCompleteTask(task.id)}
+                />
+              )}
+              right={() => (
+                <IconButton
+                  icon="pencil"
+                  onPress={() => router.push(`../task/${task.id}`)}
+                />
+              )}
+            />
+          ))}
+        </ScrollView>
+        <Divider style={styles.divider} />
+        <Text variant="titleLarge">Completed Tasks</Text>
+        <ScrollView style={styles.section}>
+          <Text>{completedTasks.length} Completed Tasks</Text>
+          {completedTasks.map((task) => (
+            <List.Item
+              key={task.id}
+              title={task.title}
+              style={styles.listItem}
+              left={() => (
+                <IconButton
+                  icon={
+                    task.completed
+                      ? "check-circle"
+                      : "checkbox-blank-circle-outline"
+                  }
+                  onPress={() => handleCompleteTask(task.id)}
+                />
+              )}
+              right={() => (
+                <IconButton
+                  icon="pencil"
+                  onPress={() => router.push(`../task/${task.id}`)}
+                />
+              )}
+            />
+          ))}
+        </ScrollView>
+      </View>
       <Modal visible={modalVisible} onDismiss={() => setModalVisible(false)}>
         <View style={styles.modalStyle}>
           <Text>

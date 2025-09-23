@@ -9,6 +9,10 @@ const useStyles = () => {
       flexDirection: "column",
       gap: 6,
     },
+    formGroupRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+    },
     btnRow: {
       flexDirection: "row",
       justifyContent: "center",
@@ -33,7 +37,8 @@ const useStyles = () => {
       flexDirection: "column",
     },
     section: {
-      flex: 1,
+      // flex: 1,
+      height: "50%",
       padding: 10,
     },
     header: {
@@ -70,6 +75,12 @@ const useStyles = () => {
       height: 2,
       width: "110%",
       alignSelf: "center",
+    },
+    listItem: {
+      marginVertical: -16,
+    },
+    listItemLists: {
+      marginVertical: -8,
     },
   });
 };

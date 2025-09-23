@@ -42,10 +42,13 @@ export default function ListForm({ listId }: { listId: string | null }) {
             resetAt: fetchedList.resetAt ?? undefined,
             completed: fetchedList.completed ?? false,
           });
+          return;
         } else {
           triggerMessage("List not found", "error");
         }
       }
+
+      setList({ ...list });
     } catch (error) {
       const errMsg = error instanceof Error ? error.message : String(error);
       triggerMessage(`Error loading list: ${errMsg}`, "error");
@@ -55,7 +58,7 @@ export default function ListForm({ listId }: { listId: string | null }) {
   useFocusEffect(
     useCallback(() => {
       loadData();
-    }, [])
+    }, [listId])
   );
 
   const handleUpdateList = () => {

@@ -6,11 +6,12 @@ import {
   getTaskById,
   ListDisplay,
   Task,
+  updateTask,
 } from "@/lib/db";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { View } from "react-native";
-import { Button, Modal, Portal, Text } from "react-native-paper";
+import { Button, Divider, Modal, Portal, Text } from "react-native-paper";
 import { useMessage } from "../_layout";
 
 export default function TaskScreen() {
@@ -46,42 +47,80 @@ export default function TaskScreen() {
     }
   };
 
+  const handleToggleComplete = () => {
+    try {
+      setTask({ ...task, completed: !task.completed });
+      updateTask(task.id, { completed: !task.completed });
+      triggerMessage(
+        `Task marked as ${!task.completed ? "complete" : "incomplete"}`,
+        "success"
+      );
+    } catch (error) {
+      const errMsg = error instanceof Error ? error.message : String(error);
+      triggerMessage(`Error updating task: ${errMsg}`, "error");
+    }
+  };
+
+  console.log("Task complete?", task.completed);
+
   return (
     <PageView>
-      <Text variant="headlineLarge">{task.title}</Text>
-      <Text variant="bodyMedium">
-        Status: {task.completed ? "Completed" : "Incomplete"}
-      </Text>
-      {list ? (
-        <View style={styles.row}>
-          <Text variant="bodyMedium">List: {list.title}</Text>
-          <Button
-            mode="text"
-            onPress={() => {
-              router.push({ pathname: "/list/[id]", params: { id: list.id } });
-            }}
-          >
-            View
-          </Button>
-        </View>
-      ) : (
-        <Text variant="bodyMedium">List: None</Text>
-      )}
-      {task.deleteOnComplete ? (
-        <Text variant="bodyMedium">
-          This task will be deleted upon completion.
+      <View style={styles.formGroup}>
+        <Text variant="headlineLarge" style={styles.header}>
+          {task.title}
         </Text>
-      ) : task.resetOnComplete && task.resetInterval ? (
         <Text variant="bodyMedium">
-          This task will reset to incomplete after one {task.resetInterval}.
+          Status: {task.completed ? "Completed" : "Incomplete"}
         </Text>
-      ) : null}
+        {list ? (
+          <View style={styles.formGroupRow}>
+            <Text variant="bodyMedium">List: {list.title}</Text>
+            <Button
+              mode="text"
+              onPress={() => {
+                router.push({
+                  pathname: "/list/[id]",
+                  params: { id: list.id },
+                });
+              }}
+            >
+              View
+            </Button>
+          </View>
+        ) : (
+          <Text variant="bodyMedium">List: None</Text>
+        )}
+        {task.deleteOnComplete ? (
+          <Text variant="bodyMedium">
+            This task will be deleted upon completion.
+          </Text>
+        ) : task.resetOnComplete && task.resetInterval ? (
+          <Text variant="bodyMedium">
+            This task will reset to incomplete one {task.resetInterval} after it
+            was completed.
+          </Text>
+        ) : null}
+      </View>
+      <Divider style={styles.divider} />
+      <View style={styles.btnRow}>
+        <Button
+          mode="contained"
+          style={styles.btn}
+          onPress={handleToggleComplete}
+        >
+          {task.completed ? "Mark as Incomplete" : "Mark as Complete"}
+        </Button>
+      </View>
+      <Divider style={styles.divider} />
       <View style={styles.row}>
         <Button
           mode="contained"
           style={styles.btn}
           onPress={() => {
-            router.push({ pathname: "/task/edit", params: { id: task.id } });
+            router.push({
+              pathname: "/task/edit",
+              params: { taskId: task.id },
+            });
           }}
         >
           Edit

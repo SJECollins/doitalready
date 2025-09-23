@@ -320,7 +320,7 @@ export const addList = (
   );
 };
 
-const listComplete = (id: string) => {
+export const listComplete = (id: string) => {
   const tasks = getTasksForList(id);
   const list = getListById(id);
   if (tasks.length > 0 && tasks.every((task) => task.completed)) {
@@ -348,6 +348,19 @@ export const checkIfListComplete = (id: string) => {
     return true;
   }
   return false;
+};
+
+export const resetList = (id: string) => {
+  const list = getListById(id);
+  if (!list) return;
+  // Reset all tasks in the list and the list itself
+  resetListTasks(id);
+  list.completed = false;
+  updateList(id, {
+    completed: false,
+    resetOnComplete: false,
+    resetAt: undefined,
+  });
 };
 
 // Update List
