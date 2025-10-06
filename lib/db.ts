@@ -184,32 +184,64 @@ export const updateTask = (id: string, updates: Partial<Task>) => {
   }
   // If task is marked completed and resetOnComplete is true, set resetAt depending on selected interval
   if (updatedTask.completed && updatedTask.resetOnComplete) {
+    const now = new Date();
     switch (updatedTask.resetInterval) {
       case "hour":
-        updates.resetAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+        updates.resetAt = new Date(
+          now.getTime() + 60 * 60 * 1000
+        ).toISOString();
         break;
       case "day":
-        updates.resetAt = new Date(
-          Date.now() + 24 * 60 * 60 * 1000
-        ).toISOString();
+        const nextDay = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate() + 1,
+          0,
+          0,
+          0,
+          0
+        );
+        updates.resetAt = nextDay.toISOString();
         break;
       case "week":
-        updates.resetAt = new Date(
-          Date.now() + 7 * 24 * 60 * 60 * 1000
-        ).toISOString();
+        const nextWeek = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate() + (7 - now.getDay()),
+          0,
+          0,
+          0,
+          0
+        );
+        updates.resetAt = nextWeek.toISOString();
         break;
       case "month":
-        updates.resetAt = new Date(
-          Date.now() + 30 * 24 * 60 * 60 * 1000
-        ).toISOString();
+        const nextMonth = new Date(
+          now.getFullYear(),
+          now.getMonth() + 1,
+          1,
+          0,
+          0,
+          0,
+          0
+        );
+        updates.resetAt = nextMonth.toISOString();
         break;
       case "year":
         updates.resetAt = new Date(
-          Date.now() + 365 * 24 * 60 * 60 * 1000
+          now.getFullYear() + 1,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0
         ).toISOString();
         break;
       default:
-        updates.resetAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+        updates.resetAt = new Date(
+          now.getTime() + 60 * 60 * 1000
+        ).toISOString();
     }
     db.runSync(`UPDATE tasks SET resetAt = ? WHERE id = ?;`, [
       updates.resetAt,
@@ -393,29 +425,51 @@ export const updateList = (id: string, updates: Partial<ListDisplay>) => {
   }
   // If list is marked completed and resetOnComplete is true, set resetAt depending on selected interval
   if (listComplete(id) && list.resetOnComplete) {
+    const now = new Date();
     switch (list.resetInterval) {
       case "hour":
         updates.resetAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
         break;
       case "day":
-        updates.resetAt = new Date(
-          Date.now() + 24 * 60 * 60 * 1000
-        ).toISOString();
+        // Set resetAt to the start of the next day (midnight)
+        const nextDay = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate() + 1,
+          0,
+          0,
+          0,
+          0
+        );
+        updates.resetAt = nextDay.toISOString();
         break;
       case "week":
-        updates.resetAt = new Date(
-          Date.now() + 7 * 24 * 60 * 60 * 1000
-        ).toISOString();
+        const nextWeek = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate() + (7 - now.getDay()),
+          0,
+          0,
+          0,
+          0
+        );
+        updates.resetAt = nextWeek.toISOString();
         break;
       case "month":
-        updates.resetAt = new Date(
-          Date.now() + 30 * 24 * 60 * 60 * 1000
-        ).toISOString();
+        const nextMonth = new Date(
+          now.getFullYear(),
+          now.getMonth() + 1,
+          1,
+          0,
+          0,
+          0,
+          0
+        );
+        updates.resetAt = nextMonth.toISOString();
         break;
       case "year":
-        updates.resetAt = new Date(
-          Date.now() + 365 * 24 * 60 * 60 * 1000
-        ).toISOString();
+        const nextYear = new Date(now.getFullYear() + 1, 0, 1, 0, 0, 0, 0);
+        updates.resetAt = nextYear.toISOString();
         break;
       default:
         updates.resetAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();

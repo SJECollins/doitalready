@@ -1,7 +1,7 @@
 import PageView from "@/components/pageView";
 import { resetDatabase } from "@/lib/db";
 import { useRouter } from "expo-router";
-import { ScrollView, View } from "react-native";
+import { View } from "react-native";
 import { Button, Divider, Switch, Text } from "react-native-paper";
 import useStyles from "../assets/styles";
 import { useAppTheme, useMessage } from "./_layout";
@@ -14,7 +14,7 @@ export default function ManageScreen() {
 
   return (
     <PageView>
-      <ScrollView style={{ flex: 1, padding: 10 }}>
+      <View style={{ flex: 1, padding: 10 }}>
         <View style={styles.col}>
           <Text variant="titleLarge">Add a Task</Text>
           <View style={styles.btnRow}>
@@ -57,7 +57,7 @@ export default function ManageScreen() {
           <Text variant="titleLarge">Dark Mode</Text>
           <Switch value={darkMode} onValueChange={toggleTheme} />
         </View>
-      </ScrollView>
+      </View>
     </PageView>
   );
 }

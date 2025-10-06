@@ -11,7 +11,7 @@ import {
 import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import { useCallback, useState } from "react";
-import { ScrollView, View } from "react-native";
+import { FlatList, View } from "react-native";
 import { Button, Divider, IconButton, List, Text } from "react-native-paper";
 import useStyles from "../assets/styles";
 
@@ -94,25 +94,23 @@ export default function HomeScreen() {
         <Text variant="labelSmall" style={{ marginBottom: 8 }}>
           Tasks not assigned to any list
         </Text>
-        <ScrollView>
-          {tasks.length === 0 ? (
-            <View style={styles.col}>
-              <Text variant="bodyMedium" style={styles.empty}>
-                No tasks yet
-              </Text>
-              <View style={styles.btnRow}>
-                <Button
-                  mode="contained"
-                  onPress={() => router.push("/task/add")}
-                >
-                  Add Task
-                </Button>
-              </View>
+        {tasks.length === 0 ? (
+          <View style={styles.col}>
+            <Text variant="bodyMedium" style={styles.empty}>
+              No tasks yet
+            </Text>
+            <View style={styles.btnRow}>
+              <Button mode="contained" onPress={() => router.push("/task/add")}>
+                Add Task
+              </Button>
             </View>
-          ) : (
-            tasks.map((task) => (
+          </View>
+        ) : (
+          <FlatList
+            data={tasks}
+            keyExtractor={(task) => task.id}
+            renderItem={({ item: task }) => (
               <List.Item
-                key={task.id}
                 title={task.title}
                 titleStyle={task.completed ? styles.completed : undefined}
                 style={styles.listItem}
@@ -133,9 +131,9 @@ export default function HomeScreen() {
                   />
                 )}
               />
-            ))
-          )}
-        </ScrollView>
+            )}
+          />
+        )}
       </View>
 
       <Divider />
@@ -148,25 +146,23 @@ export default function HomeScreen() {
         <Text variant="labelSmall" style={{ marginBottom: 8 }}>
           View and manage your lists
         </Text>
-        <ScrollView>
-          {lists.length === 0 ? (
-            <View style={styles.col}>
-              <Text variant="bodyMedium" style={styles.empty}>
-                No lists yet
-              </Text>
-              <View style={styles.btnRow}>
-                <Button
-                  mode="contained"
-                  onPress={() => router.push("/list/add")}
-                >
-                  Add List
-                </Button>
-              </View>
+        {lists.length === 0 ? (
+          <View style={styles.col}>
+            <Text variant="bodyMedium" style={styles.empty}>
+              No lists yet
+            </Text>
+            <View style={styles.btnRow}>
+              <Button mode="contained" onPress={() => router.push("/list/add")}>
+                Add List
+              </Button>
             </View>
-          ) : (
-            lists.map((list) => (
+          </View>
+        ) : (
+          <FlatList
+            data={lists}
+            keyExtractor={(list) => list.id}
+            renderItem={({ item: list }) => (
               <List.Item
-                key={list.id}
                 title={list.title}
                 titleStyle={list.completed ? styles.completed : undefined}
                 description={`${list.completedTasks} / ${list.totalTasks} tasks complete`}
@@ -174,9 +170,9 @@ export default function HomeScreen() {
                 left={() => <List.Icon icon="folder-outline" />}
                 style={styles.listItemLists}
               />
-            ))
-          )}
-        </ScrollView>
+            )}
+          />
+        )}
       </View>
     </PageView>
   );

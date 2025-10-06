@@ -11,7 +11,7 @@ import {
 } from "@/lib/db";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useState } from "react";
-import { ScrollView, View } from "react-native";
+import { FlatList, View } from "react-native";
 import {
   Button,
   Divider,
@@ -145,11 +145,13 @@ export default function ListScreen() {
       <Divider style={styles.divider} />
       <Text variant="titleLarge">Incomplete Tasks</Text>
       <View style={{ flex: 1 }}>
-        <ScrollView style={styles.section}>
-          <Text>{incompleteTasks.length} Incomplete Tasks</Text>
-          {incompleteTasks.map((task) => (
+        <Text>{incompleteTasks.length} Incomplete Tasks</Text>
+        <FlatList
+          style={styles.section}
+          data={incompleteTasks}
+          keyExtractor={(task) => task.id}
+          renderItem={({ item: task }) => (
             <List.Item
-              key={task.id}
               title={task.title}
               style={styles.listItem}
               left={() => (
@@ -169,15 +171,17 @@ export default function ListScreen() {
                 />
               )}
             />
-          ))}
-        </ScrollView>
+          )}
+        />
         <Divider style={styles.divider} />
         <Text variant="titleLarge">Completed Tasks</Text>
-        <ScrollView style={styles.section}>
-          <Text>{completedTasks.length} Completed Tasks</Text>
-          {completedTasks.map((task) => (
+        <Text>{completedTasks.length} Completed Tasks</Text>
+        <FlatList
+          style={styles.section}
+          data={completedTasks}
+          keyExtractor={(task) => task.id}
+          renderItem={({ item: task }) => (
             <List.Item
-              key={task.id}
               title={task.title}
               style={styles.listItem}
               left={() => (
@@ -197,8 +201,8 @@ export default function ListScreen() {
                 />
               )}
             />
-          ))}
-        </ScrollView>
+          )}
+        />
       </View>
       <Modal visible={modalVisible} onDismiss={() => setModalVisible(false)}>
         <View style={styles.modalStyle}>
