@@ -181,7 +181,7 @@ export default function TaskForm({
   };
 
   return (
-    <PageView>
+    <PageView scrollable={true}>
       <Text variant="headlineLarge">{taskId ? "Edit Task" : "New Task"}</Text>
 
       <View style={styles.formGroup}>
@@ -346,7 +346,7 @@ export default function TaskForm({
         )
       ) : null}
 
-      <View style={styles.btnRow}>
+      <View style={{ ...styles.btnRow, paddingBottom: 20 }}>
         <Button
           mode="contained"
           style={styles.btn}

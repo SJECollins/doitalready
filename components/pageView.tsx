@@ -1,12 +1,19 @@
 import { ReactNode } from "react";
-import { View } from "react-native";
+import { ScrollView, View } from "react-native";
 import { useTheme } from "react-native-paper";
 
-export default function PageView({ children }: { children: ReactNode }) {
+export default function PageView({
+  children,
+  scrollable,
+}: {
+  children: ReactNode;
+  scrollable?: boolean;
+}) {
   const theme = useTheme();
+  const Container = scrollable ? ScrollView : View;
 
   return (
-    <View
+    <Container
       style={{
         flexGrow: 1,
         // alignItems: "center",
@@ -15,6 +22,6 @@ export default function PageView({ children }: { children: ReactNode }) {
       }}
     >
       {children}
-    </View>
+    </Container>
   );
 }
